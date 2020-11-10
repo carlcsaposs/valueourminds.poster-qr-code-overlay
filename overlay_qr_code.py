@@ -22,18 +22,18 @@ NUMBER_OF_POSTERS = int(input('Number of posters: '))
 
 BASE_POSTER = Image.open(INPUT_FILE_PATH).convert('RGB')
 
-# TODO: Import used links from posters that have already been generated
-print('WARNING: Potential link conflicts with existing posters')
-USED_LINK_IDS = []
+with open('used-ids.json', 'r') as file:
+    OLD_LINK_IDS = json.load(file)
+NEW_LINK_IDS = []
 POSTER_IMAGES = []
-while len(USED_LINK_IDS) < NUMBER_OF_POSTERS:
+while len(NEW_LINK_IDS) < NUMBER_OF_POSTERS:
     link_id = POSTER_TYPE + '/'
     for n in range(5):
         link_id += random.choice(BASE_36_CHARACTERS)
-    if link_id in USED_LINK_IDS:
+    if link_id in OLD_LINK_IDS or link_id in NEW_LINK_IDS:
         continue
 
-    USED_LINK_IDS.append(link_id)
+    NEW_LINK_IDS.append(link_id)
     QR_DATA = qrcode.QRCode(
         error_correction=qrcode.constants.ERROR_CORRECT_M,
         box_size=30,
@@ -57,5 +57,9 @@ for n in range(math.ceil(NUMBER_OF_POSTERS/50)):
     print(f'PDF exported to {file_name}')
 
 with open('output-poster-ids.json', 'w') as file:
-    json.dump(USED_LINK_IDS, file)
+    json.dump(NEW_LINK_IDS, file)
 print('Poster IDs exported to output-poster-ids.json')
+
+with open('used-ids.json', 'w') as file:
+    json.dump(OLD_LINK_IDS+NEW_LINK_IDS, file)
+print('Updated used-ids.json')
